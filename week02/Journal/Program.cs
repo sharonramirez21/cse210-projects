@@ -4,6 +4,9 @@ class Program
 {
     static void Main(string[] args)
     {
+
+        /// What I did as a stretching activity is to add a new data in the file, in this case Mood.
+        /// I have edited or changed some things to add mood in all the functions where it should be.
         Journal journal = new Journal();
 
         while (true)
