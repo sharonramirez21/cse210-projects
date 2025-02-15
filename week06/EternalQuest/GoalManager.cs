@@ -47,7 +47,7 @@ public class GoalManager
         Console.WriteLine("Description: ");
         string description = Console.ReadLine();
         Console.WriteLine("Points: ");
-        string points = Console.ReadLine();  // Cambio a int en vez de string
+        string points = Console.ReadLine(); 
 
         switch (choice)
         {
@@ -80,18 +80,21 @@ public class GoalManager
         }
 
         Console.Write("Enter the number of the goal: ");
-        int index = int.Parse(Console.ReadLine()) - 1; 
+        string input = Console.ReadLine();
+        int index;
 
-        if (index >= 0 && index < _goals.Count)
+        if (int.TryParse(input, out index) && index >= 1 && index <= _goals.Count)
         {
-            _goals[index].RecordEvent(ref _score);
+            _goals[index - 1].RecordEvent(ref _score);
             Console.WriteLine("Event recorded!");
+            ShowProgressReport();
         }
         else
         {
             Console.WriteLine("Invalid goal number. Please select a valid goal from the list.");
         }
     }
+
 
 
     public void SaveGoals()
