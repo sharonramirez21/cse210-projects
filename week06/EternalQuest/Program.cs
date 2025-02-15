@@ -1,7 +1,10 @@
 using System;
 using System.Drawing;
+using System.IO;
 
 // What I added was a progress report on the goals, adding the ShowProgressReport() in GoalManager
+// and i added a method to clear all the file
+
 class Program
 {
     static void Main()
@@ -20,7 +23,8 @@ class Program
             Console.WriteLine("4. Load Goals");
             Console.WriteLine("5. Record Event");
             Console.WriteLine("6. View progress");
-            Console.WriteLine("7. Quit");
+            Console.WriteLine("7. Clear file");
+            Console.WriteLine("8. Quit..");
             Console.WriteLine("Select a choice from the menu: ");
         
 
@@ -47,7 +51,10 @@ class Program
                     manager.ShowProgressReport();
                     break;
                 case "7":
-                    Console.WriteLine("Saliendo del programa...");
+                    manager.ClearAllGoals();
+                    break;
+                case "8":
+                    Console.WriteLine("See you later!...");
                     return;
             }
         }

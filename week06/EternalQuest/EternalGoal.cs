@@ -4,7 +4,7 @@ public class EternalGoal : Goal
     {
     }
 
-    public override void RecordEvent()
+    public override void RecordEvent(ref int score)
     {
         Console.WriteLine($"Goal: {_shortName} recorded!. You earned: {_points} points");
     }

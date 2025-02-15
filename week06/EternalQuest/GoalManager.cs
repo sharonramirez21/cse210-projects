@@ -1,7 +1,12 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Collections.Generic;
+
 public class GoalManager
 {
     private List<Goal> _goals;
-    private int _score;
+    protected int _score;
 
     public GoalManager()
     {
@@ -9,13 +14,10 @@ public class GoalManager
         _score = 0;
     }
 
-
     public string DisplayPlayInfo()
     {
         return $"Actual points: {_score}";
     }
-
-
 
     public void Start()
     {
@@ -45,7 +47,7 @@ public class GoalManager
         Console.WriteLine("Description: ");
         string description = Console.ReadLine();
         Console.WriteLine("Points: ");
-        string points = Console.ReadLine();
+        string points = Console.ReadLine();  // Cambio a int en vez de string
 
         switch (choice)
         {
@@ -71,13 +73,18 @@ public class GoalManager
 
     public void RecordEvent()
     {
+        Console.WriteLine("Select the goal number to record an event:");
+        for (int i = 0; i < _goals.Count; i++)
+        {
+            Console.WriteLine($"{i + 1}. {_goals[i].GetDetailsString()}"); 
+        }
+
         Console.Write("Enter the number of the goal: ");
         int index = int.Parse(Console.ReadLine()) - 1; 
 
         if (index >= 0 && index < _goals.Count)
         {
-            _goals[index].RecordEvent();
-            _score += 10;
+            _goals[index].RecordEvent(ref _score);
             Console.WriteLine("Event recorded!");
         }
         else
@@ -86,68 +93,49 @@ public class GoalManager
         }
     }
 
+
     public void SaveGoals()
     {
-        Console.WriteLine("Enter the filename to save (default: goals.txt): ");
+        Console.WriteLine("Enter the filename to save (e.g., 'goals.txt'): ");
         string filename = Console.ReadLine();
-        
-        if (string.IsNullOrWhiteSpace(filename))
-        {
-            filename = "goals.txt"; 
-        }
+        string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), filename); // i added this because dont let me create the file here 
 
         try
         {
-            if (_goals.Count == 0)
+            using (StreamWriter outputFile = new StreamWriter(filePath, false)) 
             {
-                Console.WriteLine("No goals to save.");
-                return;
-            }
-
-            using (StreamWriter outputFile = new StreamWriter(filename, false))
-            {
-                outputFile.WriteLine(_score);
+                outputFile.WriteLine(_score); 
 
                 foreach (var goal in _goals)
                 {
-                    string goalRepresentation = goal.GetStringRepresentations();
-                    Console.WriteLine($"Saving goal: {goalRepresentation}");
-                    outputFile.WriteLine(goalRepresentation);
+                    string goalType = goal.GetType().Name;
+                    outputFile.WriteLine($"{goal.GetStringRepresentations()}"); 
                 }
             }
-            Console.WriteLine($"Goals saved successfully in {filename}!");
+
+            Console.WriteLine("Goals saved successfully to: " + filePath);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error writing to file: {ex.Message}");
+            Console.WriteLine($"Error saving goals: {ex.Message}");
         }
     }
 
-    public void LoadGoals()
+
+   public void LoadGoals()
     {
-        Console.WriteLine("Enter the filename to load (default: goals.txt): ");
+        Console.WriteLine("Enter the filename to load (e.g., 'goals.txt'): ");
         string filename = Console.ReadLine();
-
-        if (string.IsNullOrWhiteSpace(filename))
-        {
-            filename = "goals.txt";
-        }
-
-        if (!File.Exists(filename))
-        {
-            Console.WriteLine($"Error: The file '{filename}' does not exist.");
-            return;
-        }
+        string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), filename);
 
         try
         {
-            string[] lines = File.ReadAllLines(filename);
-            _score = int.Parse(lines[0].Trim()); 
-            _goals.Clear(); 
-
-            foreach (string line in lines.Skip(1))
+            string[] lines = File.ReadAllLines(filePath);
+            _score = int.Parse(lines[0].Trim()); // first line: score
+            _goals.Clear();
+            foreach (string line in lines.Skip(1)) // not first line
             {
-                string[] parts = line.Split(',');
+                string[] parts = line.Split(','); // split using ,
 
                 if (parts.Length >= 4)
                 {
@@ -156,44 +144,26 @@ public class GoalManager
                     string description = parts[2].Trim();
                     string points = parts[3].Trim();
 
-                    if (type == "Simple")
+
+                    if (type.Equals("Simple", StringComparison.OrdinalIgnoreCase))
                     {
-                        bool isComplete = parts.Length > 4 && bool.Parse(parts[4].Trim());
-                        SimpleGoal simpleGoal = new SimpleGoal(name, description, points);
-                        if (isComplete) simpleGoal.RecordEvent();
-                        _goals.Add(simpleGoal);
+                        _goals.Add(new SimpleGoal(name, description, points));
                     }
-                    else if (type == "Eternal")
+                    else if (type.Equals("Eternal", StringComparison.OrdinalIgnoreCase))
                     {
                         _goals.Add(new EternalGoal(name, description, points));
                     }
-                    else if (type == "Checklist" && parts.Length >= 7)
+                    else if (type.Equals("Checklist", StringComparison.OrdinalIgnoreCase) && parts.Length >= 6)
                     {
                         int target = int.Parse(parts[4].Trim());
                         int bonus = int.Parse(parts[5].Trim());
-                        int amountCompleted = int.Parse(parts[6].Trim());
-
-                        ChecklistGoal checklistGoal = new ChecklistGoal(name, description, points, target, bonus);
-                        
-                        for (int i = 0; i < amountCompleted; i++)
-                        {
-                            checklistGoal.RecordEvent();
-                        }
-
-                        _goals.Add(checklistGoal);
+                        _goals.Add(new ChecklistGoal(name, description, points, target, bonus));
                     }
-                    else
-                    {
-                        Console.WriteLine($"Error: Incomplete data or unrecognized type on the line: {line}");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine($"Error: Incomplete data on the line: {line}");
                 }
             }
 
             Console.WriteLine("Goals loaded successfully!");
+            Console.WriteLine("Loaded goals:");
         }
         catch (Exception ex)
         {
@@ -202,7 +172,8 @@ public class GoalManager
     }
 
 
-    // Progress report
+
+    // i added the method for ShowProgress
     public void ShowProgressReport()
     {
         int total = _goals.Count;
@@ -223,4 +194,35 @@ public class GoalManager
             Console.WriteLine("There are no goals recorded!");
         }
     }
+
+    // to clear all the file (empty)
+    public void ClearAllGoals()
+    {
+        Console.WriteLine("Enter the filename to clear (e.g., 'goals.txt'): ");
+        string filename = Console.ReadLine();
+        string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), filename);
+
+        Console.WriteLine("Are you sure you want to clear all goals? This will delete all data from the file (y/n): ");
+        string confirmation = Console.ReadLine().ToLower();
+
+        if (confirmation == "y")
+        {
+            try
+            {
+                File.WriteAllText(filePath, string.Empty);
+                _goals.Clear(); 
+                _score = 0;
+                Console.WriteLine("All goals have been cleared and the file is empty.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error clearing the file: {ex.Message}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Action canceled. The file was not cleared.");
+        }
+    }
+
 }

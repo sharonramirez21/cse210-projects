@@ -9,13 +9,17 @@ public class SimpleGoal : Goal
 
 
     // we call the overrise to chage the action in the method
-    public override void RecordEvent()
+    public override void RecordEvent(ref int score)
     {
         _isComplete = true;
+        score += int.Parse(_points);
         Console.WriteLine($"Goal: {_shortName} completed!. You earned: {_points} points");
     }
 
-    public override bool IsComplete() => _isComplete;
+    public override bool IsComplete()
+    {
+        return _isComplete;
+    }
 
     public override string GetStringRepresentations()
     {

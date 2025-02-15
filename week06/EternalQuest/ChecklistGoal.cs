@@ -11,19 +11,32 @@ public class ChecklistGoal : Goal
         _bonus = bonus;
     }
 
-    public override void RecordEvent()
-    {
-        _amountCompleted++; // we add +1
+    public override void RecordEvent(ref int score)
+    {   
+        if (_amountCompleted < _target)
+        {
+            _amountCompleted++;
+            score += int.Parse(_points);
+            
+            if (_amountCompleted == _target)
+            {
+                Console.WriteLine($"Goal '{_shortName}' completed! You earned the bonus of {_bonus} points.");
+                score += _bonus;
+            }
+
+        }
     }
+
 
     public override bool IsComplete()
     {
         return _amountCompleted >= _target;
     }
 
+
     public override string GetDetailsString()
     {
-        return $"{base.GetDetailsString()} [{_amountCompleted}/{_target} completed!] (Bonus: {_bonus} points.)";
+        return $"{base.GetDetailsString()} [{_amountCompleted}/{_target} completed.] (Bonus: {_bonus} points.)";
     }
 
     public override string GetStringRepresentations()

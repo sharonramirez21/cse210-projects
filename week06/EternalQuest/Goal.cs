@@ -14,7 +14,7 @@ public abstract class Goal
         _points = points;
     }
 
-    public abstract void RecordEvent();
+    public abstract void RecordEvent(ref int score);
 
     public abstract bool IsComplete();
 
